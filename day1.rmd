@@ -1,0 +1,40 @@
+---
+title: "AOC2022 Day 1"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+```
+
+
+# Data Load and Clean
+```{r, data_load}
+data <- read_csv('data/day1.txt', 
+                 col_names = c('calories'), 
+                 skip_empty_rows = FALSE,
+                 col_types = cols(calories = col_double())) %>%
+  filter(!is.na(calories) | (is.na(calories) & is.na(lead(calories)))) %>%
+  mutate(elf = cumsum(is.na(calories)) + 1) %>%
+  filter(!is.na(calories)) %>%
+  group_by(elf) %>% 
+  summarise_all(list(sum)) %>%
+  arrange(-calories)
+data
+```
+
+
+# Part 1
+```{r part1}
+data %>% head(1)
+```
+
+
+# Part 2
+```{r part2}
+data %>% 
+  head(3) %>%
+  select(calories) %>%
+  summarise_all(list(sum))
+```

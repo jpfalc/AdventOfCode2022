@@ -1,6 +1,6 @@
 ---
 title: "AOC2022 Day 1"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}

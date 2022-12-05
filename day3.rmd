@@ -1,0 +1,59 @@
+---
+title: "AOC2022 Day 3"
+output: github_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+```
+
+
+# Data Load and Clean
+```{r data_load}
+data <- read_csv('data/day3.txt',
+                 col_names = c('contents'),
+                 col_types = cols(contents = col_character())) %>%
+  mutate(rucksack = 1:n(), 
+         group = ceiling(rucksack / 3),
+         elf = paste0('elf', (rucksack-1) %% 3 + 1),
+         comp1 = str_sub(contents, 1, str_length(contents)/2),
+         comp2 = str_sub(contents, str_length(contents)/2 + 1)) %>%
+  rowwise() %>%
+  mutate(comp1 = pmap(list(comp1), ~strtoi(charToRaw(..1), 16L)),
+         comp2 = pmap(list(comp2), ~strtoi(charToRaw(..1), 16L)))
+
+priority_lower <- tibble(priority = 1:26) %>% mutate(ascii = strtoi(charToRaw('a'), 16L) + priority - 1)
+priority_upper <- tibble(priority = 27:52) %>% mutate(ascii = strtoi(charToRaw('A'), 16L) + priority - 27)
+priority <- priority_lower %>% bind_rows(priority_upper)
+data
+
+```
+
+# Part 1
+```{r part1}
+data %>%
+  mutate(ascii = intersect(comp1, comp2)) %>%
+  inner_join(priority, by = 'ascii') %>%
+  select(rucksack, priority) %>%
+  adorn_totals() %>% 
+  filter(rucksack == 'Total')
+```
+
+
+# Part 2
+```{r part2}
+data %>%
+  select(group, elf, contents) %>%
+  mutate(x = pmap(list(contents), ~strtoi(charToRaw(..1), 16L))) %>%
+  select(-contents) %>%
+  pivot_wider(names_from=elf, values_from = x) %>%
+  rowwise() %>%
+  mutate(ascii = list(intersect(intersect(elf1, elf2), elf3))) %>%
+  unnest(ascii) %>%
+  inner_join(priority, by = 'ascii') %>%
+  select(group, priority) %>%
+  adorn_totals() %>% 
+  filter(group == 'Total')
+```

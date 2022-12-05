@@ -1,0 +1,51 @@
+---
+title: "AOC2022 Day 4"
+output: github_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+```
+
+
+# Data Load and Clean
+```{r data_load}
+data <- read_delim('data/day4.txt',
+                   delim = ',',
+                   col_names = c('group1', 'group2'),
+                   col_types = cols(group1 = col_character(), group2 = col_character())) %>%
+  mutate(pair = 1:n()) %>%
+  mutate(group1 = str_split(group1, '-'),
+         group2 = str_split(group2, '-')) %>%
+  unnest(group1) %>% mutate(group1 = as.integer(group1)) %>% 
+  unnest(group2) %>% mutate(group2 = as.integer(group2)) %>%
+  group_by(pair) %>%
+  summarise(min1 = min(group1), max1 = max(group1),
+            min2 = min(group2), max2 = max(group2),
+            .groups = 'drop')
+data
+```
+
+# Part 1
+```{r part1}
+data %>%
+  mutate(fully_contained = 0,
+         fully_contained = ifelse(min1 <= min2 & max1 >= max2, 1, fully_contained),
+         fully_contained = ifelse(min2 <= min1 & max2 >= max1, 1, fully_contained)) %>%
+  select(pair, fully_contained) %>%
+  adorn_totals() %>%
+  filter(pair == 'Total')
+```
+
+
+# Part 2
+```{r part2}
+data %>%
+  mutate(overlap = 1,
+         overlap = ifelse(max1 < min2 | max2 < min1, 0, overlap)) %>%
+  select(pair, overlap) %>%
+  adorn_totals() %>%
+  filter(pair == 'Total')
+```
